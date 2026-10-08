@@ -1,0 +1,21 @@
+name: continuous_integration
+
+on: [push]
+
+jobs:
+  sast_scan:
+    name: Run Bandit scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Analyze codebase
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+
+      - name: Install python
+        run: pip install bandit
+
+      - name: Run Bandit scan
+        run: bandir -r .
