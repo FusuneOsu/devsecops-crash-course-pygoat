@@ -27,57 +27,66 @@ jobs:
           name: bandit-findings
           path: bandit-report.json
 
-  # image_scan:
-  #   name: Build Image and Run Image Scan
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Analyze codebase
-  #       uses: actions/checkout@v7
-
-  #     - name: Set up Docker
-  #       uses: docker-practice/actions-setup-docker@v1
-
-  #     - name: Docker Build Image
-  #       run: docker build -f Dockerfile -t myapp:latest .
-
-  #     - name: Docker Scout Scan
-  #       # run: |
-  #       #   curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-  #       #   sh install-scout.sh
-
-  #       #   echo ${{secrets.REPO_PWD}} | docker login -u echo ${{secrets.REPO_USER}} --password-stdin
-  #       #   docker scout quickview
-  #       #   docker scout cves
-  #       uses: docker/scout-action@v1.26.0
-  #       with:
-  #         dockerhub-user: ${{secrets.REPO_USER}}
-  #         dockerhub-password: ${{secrets.REPO_PWD}}
-  #         command: quickview,cves
   image_scan:
     name: Build Image and Run Image Scan
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Analyze codebase
+        uses: actions/checkout@v7
 
-    - name: Check Docker installation
-      run: |
-       docker --version
-       docker info
+      - name: Set up Docker
+        uses: docker-practice/actions-setup-docker@v1
 
-    - name: Build Docker image
-      run: docker build -f Dockerfile -t myapp:latest .
+      - name: Docker Build Image
+        run: docker build -f Dockerfile -t myapp:latest .
 
-    - name: Install Docker Scout
-      run: |
-        curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-        sh install-scout.sh
+      - name: Docker Scout Scan
+        # run: |
+        #   curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+        #   sh install-scout.sh
 
-    - name: Scan image with Docker Scout
-      run: |
-        docker scout version
-        docker scout cves local://myapp:latest
+        #   echo ${{secrets.REPO_PWD}} | docker login -u echo ${{secrets.REPO_USER}} --password-stdin
+        #   docker scout quickview
+        #   docker scout cves
+        uses: docker/scout-action@v1.26.0
+        with:
+          dockerhub-user: ${{secrets.REPO_USER}}
+          dockerhub-password: ${{secrets.REPO_PWD}}
+          command: quickview,cves
+          only-severities: critical,high
+          sarif-file: scout-report.sarif
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: docker-scout-findings
+          path: scout-report.sarif
 
   
+  # image_scan:
+  #   name: Build Image and Run Image Scan
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+
+  #   - name: Check Docker installation
+  #     run: |
+  #      docker --version
+  #      docker info
+
+  #   - name: Build Docker image
+  #     run: docker build -f Dockerfile -t myapp:latest .
+
+  #   - name: Install Docker Scout
+  #     run: |
+  #       curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+  #       sh install-scout.sh
+
+  #   - name: Scan image with Docker Scout
+  #     run: |
+  #       docker scout version
+  #       docker scout cves local://myapp:latest
